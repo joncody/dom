@@ -158,7 +158,7 @@ const allButtons = dom(".toolbar").selectAll("button");
 | Method | Description |
 |--------|-------------|
 | `children()` | Returns direct children of each element as a new `dom` object. |
-| `parents()` | Returns parent of each element (`null` if no parent). |
+| `parents()` | Returns a new `dom` object containing the parent element of each selected element if it has one. |
 | `select(selector)` | Finds **first** matching descendant per element (`querySelector`). |
 | `selectAll(selector)` | Finds **all** matching descendants per element (`querySelectorAll`). |
 | `clone([deep])` | Clones all elements (`deep = true` by default); returns new `dom` object. |
