@@ -180,10 +180,10 @@ const allButtons = dom(".toolbar").selectAll("button");
 | Method | Description |
 |--------|-------------|
 | `on(type, fn, [capture])` | Adds event listener to all elements. |
-| `off(type, fn, [capture])` | Removes event listener. |
+| `off([type], [fn], [capture])` | Removes event listener(s). |
 | `once(type, fn, [capture])` | Adds a one-time listener; auto-removes after first trigger. |
 
-> Callback signature for `once`: `fn(event, element)` — includes reference to the element.
+> Callback signature: `fn(event)`
 
 ---
 
