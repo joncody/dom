@@ -23,7 +23,7 @@ A **lightweight, modern alternative to jQuery** for selecting and manipulating D
 - 🎨 **CSS Styling**  
   Get/set computed or inline styles with automatic `camelCase` ↔ `kebab-case` conversion.
 - 🌲 **DOM Traversal**  
-  `parents()`, `children()`, `select()`, `selectAll()`
+  `parents()`, `children()`, `next()`, `prev()`, `siblings()`, `select()`, `selectAll()`
 - 🔁 **Clone & Create**  
   `clone()` and `dom.create(tag)` for element generation.
 - ⚡ **Event Handling**  
@@ -84,6 +84,10 @@ dom("li.item")
 ```js
 // Direct children
 const items = dom("ul").children(); // -> dom([<li>, <li>])
+
+// Sibling navigation
+dom("#middle").next().addClass("highlight");
+dom(".active").siblings().removeClass("active");
 
 // First matching descendant
 const first = dom("#nav").select("li:first-child");
@@ -159,6 +163,9 @@ const allButtons = dom(".toolbar").selectAll("button");
 |--------|-------------|
 | `children()` | Returns direct children of each element as a new `dom` object. |
 | `parents()` | Returns a new `dom` object containing the parent element of each selected element if it has one. |
+| `next()` | Returns the **next sibling element** of each selected element (skips text/comment nodes). |
+| `prev()` | Returns the **previous sibling element** of each selected element (skips text/comment nodes). |
+| `siblings()` | Returns all **sibling elements** (excluding self); deduplicates when multiple selected elements share siblings. |
 | `select(selector)` | Finds **first** matching descendant per element (`querySelector`). |
 | `selectAll(selector)` | Finds **all** matching descendants per element (`querySelectorAll`). |
 | `clone([deep])` | Clones all elements (`deep = true` by default); returns new `dom` object. |
@@ -207,5 +214,3 @@ const allButtons = dom(".toolbar").selectAll("button");
 ## 📄 License
 
 See [LICENSE](./LICENSE)
-
----
