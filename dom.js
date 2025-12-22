@@ -1,0 +1,358 @@
+"use strict";
+
+import utils from "./utils.js";
+
+const global = (
+    globalThis !== undefined
+    ? globalThis
+    : (
+        window !== undefined
+        ? window
+        : this
+    )
+);
+
+const VALID_TAGS = new Set([
+  "a", "abbr", "address", "area", "article", "aside", "audio", "b", "base",
+  "bdo", "blockquote", "body", "br", "button", "canvas", "caption", "cite",
+  "code", "col", "colgroup", "dd", "del", "details", "dfn", "dialog", "div",
+  "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure", "footer",
+  "form", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hr", "i",
+  "iframe", "img", "input", "ins", "kbd", "label", "legend", "li", "link",
+  "main", "map", "mark", "meta", "nav", "noscript", "object", "ol",
+  "optgroup", "option", "p", "param", "picture", "pre", "progress", "q",
+  "rp", "rt", "ruby", "s", "samp", "script", "section", "select", "small",
+  "source", "span", "strong", "style", "sub", "summary", "sup", "svg",
+  "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead",
+  "time", "title", "tr", "track", "u", "ul", "var", "video", "wbr"
+]);
+
+const eventRegistry = new WeakMap();
+
+function toElements(selector) {
+    const elements = [];
+
+    if (selector && typeof selector === "object" && typeof selector.get === "function") {
+        elements.push(...selector.get());
+    } else if (typeof selector === "string") {
+        elements.push(...document.querySelectorAll(selector));
+    } else if (utils.isNode(selector)) {
+        elements.push(selector);
+    } else if (utils.objectType(selector) === "nodelist") {
+        elements.push(...selector);
+    } else if (Array.isArray(selector) && selector.every(utils.isNode)) {
+        elements.push(...selector);
+    }
+    return elements;
+}
+
+// Factory
+function dom(selector) {
+    const elements = toElements(selector);
+    const api = {
+        // === Core / Inspection ===
+        get: function (index) {
+            if (typeof index === "number" && index >= 0 && index < elements.length) {
+                return elements[index];
+            }
+            return [...elements];
+        },
+        length: function () {
+            return elements.length;
+        },
+        each: function (fn) {
+            elements.forEach(fn, api);
+            return api;
+        },
+
+        // === Collection Management ===
+        addItem: function (val) {
+            const newElements = toElements(val);
+            elements.push(...newElements);
+            return api;
+        },
+        removeItem: function (index) {
+            if (typeof index === "number" && index >= 0 && index < elements.length) {
+                elements.splice(index, 1);
+            }
+            return api;
+        },
+
+        // === Attributes & Classes ===
+        attr: function (name, value) {
+            if (typeof name !== "string") {
+                return api;
+            }
+            if (value === undefined) {
+                return elements.map((el) => el.getAttribute(name));
+            }
+            if (value === null) {
+                elements.forEach((el) => el.removeAttribute(name));
+            } else {
+                elements.forEach((el) => el.setAttribute(name, value));
+            }
+            return api;
+        },
+        data: function (name, value) {
+            if (typeof name !== "string") {
+                return api;
+            }
+            if (value === undefined) {
+                return elements.map((el) => el.dataset[name]);
+            }
+            if (value === null) {
+                elements.forEach((el) => delete el.dataset[name]);
+            } else {
+                elements.forEach((el) => el.dataset[name] = value);
+            }
+            return api;
+        },
+        hasClass: function (token) {
+            if (typeof token !== "string" || !token.trim()) {
+                return api;
+            }
+            return elements.every((el) => el.classList.contains(token));
+        },
+        addClass: function (token) {
+            if (typeof token !== "string" || !token.trim()) {
+                return api;
+            }
+            elements.forEach((el) => {
+                token.trim().split(/\s+/).forEach((c) => {
+                    el.classList.add(c);
+                });
+            });
+            return api;
+        },
+        removeClass: function (token) {
+            if (typeof token !== "string" || !token.trim()) {
+                return api;
+            }
+            elements.forEach((el) => {
+                token.trim().split(/\s+/).forEach((c) => {
+                    el.classList.remove(c);
+                });
+            });
+            return api;
+        },
+        toggleClass: function (token, force) {
+            if (typeof token !== "string" || !token.trim()) {
+                return api;
+            }
+            elements.forEach((el) => {
+                token.trim().split(/\s+/).forEach((c) => {
+                    el.classList.toggle(c, force);
+                });
+            });
+            return api;
+        },
+        getClassName: function () {
+            return elements.map((el) => el.className);
+        },
+
+        // === Content ===
+        text: function (value) {
+            if (value === undefined) {
+                return elements.map((el) => el.textContent);
+            }
+            if (typeof value !== "string") {
+                return api;
+            }
+            elements.forEach((el) => {
+                el.textContent = value;
+            });
+            return api;
+        },
+        html: function (value) {
+            if (value === undefined) {
+                return elements.map((el) => el.innerHTML);
+            }
+            if ((typeof value !== "string")) {
+                return api;
+            }
+            elements.forEach((el) => el.innerHTML = value);
+            return api;
+        },
+
+        // === DOM Traversal ===
+        children: function () {
+            return dom(elements.flatMap((el) => [...el.children]));
+        },
+        parents: function () {
+            return dom(elements.map((el) => el.parentElement));
+        },
+        select: function (token) {
+            if (typeof token !== "string") {
+                return api;
+            }
+            const nodes = [];
+            elements.forEach(function (el) {
+                nodes.push(el.querySelector(token));
+            });
+            return dom(nodes);
+        },
+        selectAll: function (token) {
+            if (typeof token !== "string") {
+                return api;
+            }
+            const nodes = [];
+            elements.forEach(function (el) {
+                nodes.push(...el.querySelectorAll(token));
+            });
+            return dom(nodes);
+        },
+
+        // === DOM Manipulation ===
+        clone: function (deep = true) {
+            const clones = elements.map((el) => el.cloneNode(deep));
+            return dom(clones);
+        },
+        remove: function () {
+            elements.forEach((el) => {
+                if (el.parentNode) {
+                    el.parentNode.removeChild(el);
+                }
+            });
+            return api;
+        },
+
+        // === Styling ===
+        css: function (name, value) {
+            if (typeof name !== "string") {
+                return api;
+            }
+            const camelName = utils.camelCase(name);
+            const kebabName = utils.kebabCase(name);
+            if (value === undefined) {
+                return elements.map((el) => {
+                    return global.getComputedStyle(el).getPropertyValue(kebabName) || '';
+                });
+            }
+            if (value === null) {
+                elements.forEach((el) => el.style.removeProperty(kebabName));
+            } else {
+                elements.forEach((el) => el.style[camelName] = value);
+            }
+            return api;
+        },
+
+        // === Events ===
+        on: function (type, fn, capture = false) {
+            if (typeof type !== "string" || typeof fn !== "function") {
+                return api;
+            }
+            elements.forEach((el) => {
+                let register = eventRegistry.get(el);
+                if (!register) {
+                    register = {};
+                    eventRegistry.set(el, register);
+                }
+                if (!register[type]) {
+                    register[type] = [];
+                }
+                register[type].push({fn, capture});
+                el.addEventListener(type, fn, capture);
+            });
+            return api;
+        },
+        off: function (type, fn, capture = false) {
+            if (!type) {
+                elements.forEach((el) => {
+                    const register = eventRegistry.get(el);
+                    if (register) {
+                        for (const [eventType, handlers] of Object.entries(register)) {
+                            handlers.forEach(({ fn: f, capture: c }) => {
+                                el.removeEventListener(eventType, f, c);
+                            });
+                        }
+                        eventRegistry.delete(el);
+                    }
+                });
+                return api;
+            }
+            if (typeof type === "string" && !fn) {
+                elements.forEach((el) => {
+                    const register = eventRegistry.get(el);
+                    if (register && register[type]) {
+                        register[type].forEach(({ fn: f, capture: c }) => {
+                            el.removeEventListener(type, f, c);
+                        });
+                        delete register[type];
+                        if (Object.keys(register).length === 0) {
+                            eventRegistry.delete(el);
+                        }
+                    }
+                });
+                return api;
+            }
+            if (typeof type === "string" && typeof fn === "function") {
+                elements.forEach((el) => {
+                    const register = eventRegistry.get(el);
+                    if (register?.[type]) {
+                        register[type] = register[type].filter(({ fn: f, capture: c }) => {
+                            if (f === fn && c === capture) {
+                                el.removeEventListener(type, f, c);
+                                return false;
+                            }
+                            return true;
+                        });
+                        if (register[type].length === 0) {
+                            delete register[type];
+                            if (Object.keys(register).length === 0) {
+                                eventRegistry.delete(el);
+                            }
+                        }
+                    }
+                });
+                return api;
+            }
+            return api;
+        },
+        once: function (type, fn, capture = false) {
+            if (typeof type !== "string" || typeof fn !== "function") {
+                return api;
+            }
+            elements.forEach((el) => {
+                const wrapper = (event) => {
+                    el.removeEventListener(type, wrapper, capture);
+                    const register = eventRegistry.get(el);
+                    if (register?.[type]) {
+                        register[type] = register[type].filter((h) => h.fn !== wrapper);
+                        if (register[type].length === 0) {
+                            delete register[type];
+                            if (Object.keys(register).length === 0) {
+                                eventRegistry.delete(el);
+                            }
+                        }
+                    }
+                    fn(event);
+                };
+                el.addEventListener(type, wrapper, capture);
+                let register = eventRegistry.get(el);
+                if (!register) {
+                    register = {};
+                    eventRegistry.set(el, register);
+                }
+                if (!register[type]) {
+                    register[type] = [];
+                }
+                register[type].push({fn: wrapper, capture});
+            });
+            return api;
+        }
+    };
+    return Object.freeze(api);
+}
+
+dom.create = function (tag) {
+    if (typeof tag !== "string") {
+        return dom();
+    }
+    tag = tag.toLowerCase();
+    if (!VALID_TAGS.has(tag)) {
+        return dom();
+    }
+    return dom(document.createElement(tag));
+};
+
+export default Object.freeze(dom);
