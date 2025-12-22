@@ -273,7 +273,7 @@ function dom(selector) {
             if (typeof type === "string" && !fn) {
                 elements.forEach((el) => {
                     const register = eventRegistry.get(el);
-                    if (register && register[type]) {
+                    if (register?.[type]) {
                         register[type].forEach(({fn: f, capture: c}) => {
                             el.removeEventListener(type, f, c);
                         });
@@ -327,7 +327,6 @@ function dom(selector) {
                     }
                     fn(event);
                 };
-                el.addEventListener(type, wrapper, capture);
                 let register = eventRegistry.get(el);
                 if (!register) {
                     register = {};
@@ -337,6 +336,7 @@ function dom(selector) {
                     register[type] = [];
                 }
                 register[type].push({fn: wrapper, capture});
+                el.addEventListener(type, wrapper, capture);
             });
             return api;
         }
