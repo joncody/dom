@@ -49,7 +49,7 @@ function kebabCase(value) {
     if (typeof value !== "string") {
         return value;
     }
-    return value.replace(/([A-Z])/g, '-$1').toLowerCase()
+    return value.replace(/([A-Z])/g, "-$1").toLowerCase();
 }
 
 function toElements(selector) {
