@@ -2,7 +2,7 @@
 
 A **lightweight, modern alternative to jQuery** for selecting and manipulating DOM elements with a clean, chainable API.
 
-`dom` prioritizes **clarity, safety, and interoperability**—delivering powerful DOM control without bloat.
+`dom` prioritizes **clarity, safety, and interoperability** — delivering powerful DOM control without bloat.
 
 > 📦 **Zero runtime dependencies** • ⚡ **Chainable & immutable** • 🌲 **Pure ES module**
 
@@ -35,12 +35,11 @@ A **lightweight, modern alternative to jQuery** for selecting and manipulating D
 
 ## 📦 Installation
 
-Place `dom.js` and its utility dependency in your project:
+Place `dom.js` in your project:
 
 ```bash
 your-project/
-├── dom.js
-└── utils.js
+└── dom.js
 ```
 
 Then import:
