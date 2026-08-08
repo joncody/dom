@@ -2,9 +2,9 @@
 
 A **lightweight, modern alternative to jQuery** for selecting and manipulating DOM elements with a clean, chainable API.
 
-`dom` prioritizes **clarity, safety, and interoperability** — delivering powerful DOM control without bloat.
+`dom` prioritizes **clarity, safety, zero dependencies, and Crockfordian standards** — delivering powerful DOM control without bloat.
 
-> 📦 **Zero runtime dependencies** • ⚡ **Chainable & immutable** • 🌲 **Pure ES module**
+> 📦 **Zero runtime dependencies** • ⚡ **Chainable & immutable** • 🌲 **Pure ES module** • 🛡️ **Zero `this` or `new`**
 
 ---
 
@@ -29,7 +29,9 @@ A **lightweight, modern alternative to jQuery** for selecting and manipulating D
 - ⚡ **Event Handling**  
   `on()`, `off()`, `once()` with optional capture phase support.
 - 🧊 **Immutable Interface**  
-  All returned objects are frozen to prevent accidental mutation.
+  All returned spec objects are frozen (`Object.freeze`) to prevent runtime mutation.
+- 🛡️ **Crockford & JSLint Strict**  
+  Zero `this`, zero `new`, zero `class`, strict equality (`===`), and 100% JSLint compliant.
 
 ---
 
@@ -48,8 +50,6 @@ Then import:
 import dom from './dom.js';
 ```
 
-> 💡 `dom` relies on `utils.js` for helpers: `isNode`, `objectType`, `camelCase`, and `kebabCase`.
-
 ---
 
 ## 🧠 Quick Examples
@@ -59,7 +59,7 @@ import dom from './dom.js';
 dom("p.intro")
   .addClass("highlight")
   .text("Updated safely!")
-  .on("click", () => console.log("Clicked!"));
+  .on("click", (e) => console.log("Clicked!", e));
 ```
 
 ### Create and insert
@@ -104,7 +104,7 @@ const allButtons = dom(".toolbar").selectAll("button");
 | Method | Description |
 |--------|-------------|
 | `dom(selector)` | Creates a selection from a CSS string, `Node`, `NodeList`, array of `Node`s, or a `dom` instance. |
-| `dom.create(tagName)` | Creates and returns a new `dom`-wrapped element (only valid HTML tags allowed). |
+| `dom.create(tagName)` | Creates and returns a new `dom`-wrapped element (only whitelisted HTML tags allowed). |
 
 ---
 
@@ -197,9 +197,21 @@ const allButtons = dom(".toolbar").selectAll("button");
 
 | Method | Description |
 |--------|-------------|
-| `each(fn)` | Iterates over elements: `fn(element, index, array)`. Context = `dom` instance. |
+| `each(fn)` | Iterates over elements: `fn(element, index)`. |
 | `addItem(val)` | Adds more elements to the current selection. |
 | `removeItem(index)` | Removes element at `index` from the internal selection array. |
+
+---
+
+## 🧪 Testing
+
+This library includes a zero-dependency, comprehensive browser-based verification suite (70+ assertions covering 100% of methods, boundary guards, and error conditions).
+
+To run the test suite:
+
+1. Serve the repository using any static web server (e.g., Nginx, Caddy, or Python's `http.server`).
+2. Open `tests/index.html` in your browser (e.g., `http://localhost/tests/index.html`).
+3. View results visually on the page or open Developer Tools (`F12` -> **Console**) to inspect grouped log outputs and execution metrics.
 
 ---
 
