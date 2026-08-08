@@ -160,10 +160,10 @@ function dom(selector) {
             if (value === undefined) {
                 return elements.map(function (el) {
                     if (
-                        gloabl_env !== undefined
-                        && typeof gloabl_env.getComputedStyle === "function"
+                        global_env !== undefined
+                        && typeof global_env.getComputedStyle === "function"
                     ) {
-                        const computed = gloabl_env.getComputedStyle(el);
+                        const computed = global_env.getComputedStyle(el);
                         return computed.getPropertyValue(kebabName) || "";
                     }
                     return "";
