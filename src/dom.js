@@ -17,7 +17,7 @@ const VALID_TAGS = new Set([
 
 const eventRegistry = new WeakMap();
 
-function getGlobalEnvironment() {
+function get_global_environment() {
     if (globalThis !== undefined) {
         return globalThis;
     }
@@ -27,7 +27,7 @@ function getGlobalEnvironment() {
     return undefined;
 }
 
-const globalEnv = getGlobalEnvironment();
+const global_env = get_global_environment();
 
 function objectType(obj) {
     if (obj === null) {
@@ -160,10 +160,10 @@ function dom(selector) {
             if (value === undefined) {
                 return elements.map(function (el) {
                     if (
-                        globalEnv !== undefined
-                        && typeof globalEnv.getComputedStyle === "function"
+                        gloabl_env !== undefined
+                        && typeof gloabl_env.getComputedStyle === "function"
                     ) {
-                        const computed = globalEnv.getComputedStyle(el);
+                        const computed = gloabl_env.getComputedStyle(el);
                         return computed.getPropertyValue(kebabName) || "";
                     }
                     return "";
