@@ -1,128 +1,135 @@
 import dom from "../../../src/dom.js";
 
-function createTestRunner() {
-    const resultsContainer = document.getElementById("test-results");
-    const summaryContainer = document.getElementById("summary");
+function create_test_runner() {
+    const results_container = document.getElementById("test-results");
+    const summary_container = document.getElementById("summary");
 
-    let currentGroupBody = null;
-    let failedAssertions = 0;
-    let passedAssertions = 0;
-    let totalAssertions = 0;
+    let current_group_body = null;
+    let failed_assertions = 0;
+    let passed_assertions = 0;
+    let total_assertions = 0;
+
+    function group(title) {
+        if (current_group_body !== null) {
+            console.groupEnd();
+        }
+        console.group(title);
+
+        const group_el = document.createElement("div");
+        const header_el = document.createElement("div");
+
+        group_el.className = "test-group";
+        header_el.className = "group-header";
+        header_el.textContent = title;
+
+        current_group_body = document.createElement("div");
+        current_group_body.className = "group-body";
+
+        group_el.appendChild(header_el);
+        group_el.appendChild(current_group_body);
+        results_container.appendChild(group_el);
+    }
 
     function assert(condition, message) {
-        totalAssertions += 1;
+        total_assertions += 1;
         const entry = document.createElement("div");
 
         if (condition === true) {
-            passedAssertions += 1;
+            passed_assertions += 1;
             entry.className = "log-entry pass";
             entry.textContent = "[PASS] " + message;
-            console.log("%c[PASS] " + message, "color: #4caf50;");
+            console.log("[PASS] " + message);
         } else {
-            failedAssertions += 1;
+            failed_assertions += 1;
             entry.className = "log-entry fail";
             entry.textContent = "[FAIL] " + message;
             console.error("[FAIL] " + message);
         }
 
-        if (currentGroupBody !== null) {
-            currentGroupBody.appendChild(entry);
+        if (current_group_body !== null) {
+            current_group_body.appendChild(entry);
         }
     }
 
-    function assertThrows(fn, message) {
-        totalAssertions += 1;
+    function assert_throws(fn, message) {
+        total_assertions += 1;
         const entry = document.createElement("div");
         try {
             fn();
-            failedAssertions += 1;
+            failed_assertions += 1;
             entry.className = "log-entry fail";
             entry.textContent = "[FAIL] " + message + " (Did not throw)";
             console.error("[FAIL] " + message + " (Did not throw)");
         } catch (ignore) {
-            passedAssertions += 1;
+            passed_assertions += 1;
             entry.className = "log-entry pass";
             entry.textContent = "[PASS] " + message + " (Threw as expected)";
-            console.log(
-                "%c[PASS] " + message + " (Threw as expected)",
-                "color: #4caf50;"
-            );
+            console.log("[PASS] " + message + " (Threw as expected)");
         }
 
-        if (currentGroupBody !== null) {
-            currentGroupBody.appendChild(entry);
+        if (current_group_body !== null) {
+            current_group_body.appendChild(entry);
         }
     }
 
-    function group(title) {
-        if (currentGroupBody !== null) {
-            console.groupEnd();
-        }
-        console.group(title);
-
-        const groupEl = document.createElement("div");
-        const headerEl = document.createElement("div");
-
-        groupEl.className = "test-group";
-        headerEl.className = "group-header";
-        headerEl.textContent = title;
-
-        currentGroupBody = document.createElement("div");
-        currentGroupBody.className = "group-body";
-
-        groupEl.appendChild(headerEl);
-        groupEl.appendChild(currentGroupBody);
-        resultsContainer.appendChild(groupEl);
-    }
-
-    function renderSummary(startTime) {
-        if (currentGroupBody !== null) {
+    function render_summary(start_time) {
+        if (current_group_body !== null) {
             console.groupEnd();
         }
 
-        const elapsed = performance.now() - startTime;
-        const duration = elapsed.toFixed(2);
-        const statusClass = (
-            failedAssertions === 0
-            ? "summary-pass"
-            : "summary-fail"
+        const elapsed = performance.now() - start_time;
+        const duration = Math.round(elapsed * 100) / 100;
+        let status_class = "summary-fail";
+
+        if (failed_assertions === 0) {
+            status_class = "summary-pass";
+        }
+
+        const summary_text = (
+            "Total Assertions: " +
+            String(total_assertions) +
+            " | Passed: " +
+            String(passed_assertions) +
+            " | Failed: " +
+            String(failed_assertions) +
+            " | Execution Time: " +
+            duration +
+            " ms"
         );
 
-        const summaryText = (
-            "Total Assertions: " + String(totalAssertions)
-            + " | Passed: " + String(passedAssertions)
-            + " | Failed: " + String(failedAssertions)
-            + " | Execution Time: " + duration + " ms"
-        );
+        console.info(summary_text);
 
-        console.info(
-            "%c" + summaryText,
-            "font-weight: bold; font-size: 1.1em; color: #82aaff;"
-        );
-
-        summaryContainer.innerHTML = (
-            "Total Assertions: <strong>" + String(totalAssertions) +
-            "</strong> | Passed: <span class='" + statusClass + "'>" +
-            String(passedAssertions) + "</span> | Failed: <span class='" +
-            statusClass + "'>" + String(failedAssertions) +
-            "</span> | Execution Time: <strong>" + duration + " ms</strong>"
+        summary_container.innerHTML = (
+            "Total Assertions: <strong>" +
+            String(total_assertions) +
+            "</strong> | Passed: <span class='" +
+            status_class +
+            "'>" +
+            String(passed_assertions) +
+            "</span> | Failed: <span class='" +
+            status_class +
+            "'>" +
+            String(failed_assertions) +
+            "</span> | Execution Time: <strong>" +
+            duration +
+            " ms</strong>"
         );
     }
 
     return Object.freeze({
         assert,
-        assertThrows,
+        assert_throws,
         group,
-        renderSummary
+        render_summary
     });
 }
 
-function runAllTests() {
-    const runner = createTestRunner();
-    const startTime = performance.now();
+function run_all_tests() {
+    const runner = create_test_runner();
+    const start_time = performance.now();
     const fixture = document.getElementById("test-fixture");
 
-    function resetFixture() {
+    function reset_fixture() {
         fixture.innerHTML = "";
     }
 
@@ -131,53 +138,53 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("1. Factory Instantiation & Selector Resolution");
 
-    resetFixture();
+    reset_fixture();
     const element = document.createElement("div");
     element.id = "target-node";
     fixture.appendChild(element);
 
-    const selectorWrapper = dom("#target-node");
+    const selector_wrapper = dom("#target-node");
     runner.assert(
-        selectorWrapper.length() === 1,
+        selector_wrapper.length() === 1,
         "CSS selector string '#target-node' resolves to 1 element"
     );
 
-    const nodeWrapper = dom(element);
+    const node_wrapper = dom(element);
     runner.assert(
-        nodeWrapper.length() === 1,
+        node_wrapper.length() === 1,
         "Direct DOM element reference wraps successfully"
     );
 
-    const wrappedCopy = dom(selectorWrapper);
+    const wrapped_copy = dom(selector_wrapper);
     runner.assert(
-        wrappedCopy.length() === 1,
+        wrapped_copy.length() === 1,
         "Wrapping existing dom() instance extracts elements correctly"
     );
 
-    const nodeListWrapper = dom(document.querySelectorAll("#target-node"));
+    const node_list = dom(document.querySelectorAll("#target-node"));
     runner.assert(
-        nodeListWrapper.length() === 1,
+        node_list.length() === 1,
         "Wrapping a NodeList resolves elements correctly"
     );
 
-    const collectionWrapper = dom(fixture.children);
+    const collection_wrapper = dom(fixture.children);
     runner.assert(
-        collectionWrapper.length() === 1,
+        collection_wrapper.length() === 1,
         "Wrapping an HTMLCollection resolves elements correctly"
     );
 
     const fragment = document.createDocumentFragment();
     fragment.appendChild(document.createElement("span"));
     fragment.appendChild(document.createElement("span"));
-    const fragmentWrapper = dom(fragment);
+    const fragment_wrapper = dom(fragment);
     runner.assert(
-        fragmentWrapper.length() === 2,
+        fragment_wrapper.length() === 2,
         "DocumentFragment expands into its element children"
     );
 
-    const mixedArrayWrapper = dom([element, "not-a-node", 123]);
+    const mixed_array = dom([element, "not-a-node", 123]);
     runner.assert(
-        mixedArrayWrapper.length() === 0,
+        mixed_array.length() === 0,
         "Array containing non-node values rejects and returns empty wrapper"
     );
 
@@ -191,15 +198,15 @@ function runAllTests() {
         "Passing numbers or booleans returns empty wrapper"
     );
 
-    const createdDiv = dom.create("DIV");
+    const created_div = dom.create("DIV");
     runner.assert(
-        createdDiv.length() === 1 && createdDiv.get(0).tagName === "DIV",
+        created_div.length() === 1 && created_div.get(0).tagName === "DIV",
         "dom.create('DIV') handles uppercase tags and creates valid element"
     );
 
-    const invalidTag = dom.create("invalid-custom-tag-12345");
+    const invalid_tag = dom.create("invalid-custom-tag-12345");
     runner.assert(
-        invalidTag.length() === 0,
+        invalid_tag.length() === 0,
         "dom.create() with un-whitelisted tag returns empty wrapper"
     );
 
@@ -211,11 +218,11 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     // GROUP 2: Encapsulation & Immutability
     // -------------------------------------------------------------------------
-    runner.group("2. Encapsulation & Immutability (Crockford Standards)");
+    runner.group("2. Encapsulation & Immutability");
 
-    const sampleDom = dom("#target-node");
+    const sample_dom = dom("#target-node");
     runner.assert(
-        Object.isFrozen(sampleDom) === true,
+        Object.isFrozen(sample_dom) === true,
         "Returned dom API spec object is frozen with Object.freeze()"
     );
 
@@ -229,16 +236,16 @@ function runAllTests() {
         "dom.create function is frozen with Object.freeze()"
     );
 
-    runner.assertThrows(function () {
-        sampleDom.length = 999;
+    runner.assert_throws(function () {
+        sample_dom.length = 999;
     }, "Mutating frozen API property fails in strict mode");
 
-    runner.assertThrows(function () {
-        sampleDom.customProp = true;
+    runner.assert_throws(function () {
+        sample_dom.customProp = true;
     }, "Adding property to frozen API object fails in strict mode");
 
     runner.assert(
-        sampleDom.elements === undefined,
+        sample_dom.elements === undefined,
         "Internal elements array is encapsulated via closure"
     );
 
@@ -247,54 +254,54 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("3. Core Inspection & Copy Methods (length, get, each)");
 
-    resetFixture();
+    reset_fixture();
     const el1 = document.createElement("span");
     const el2 = document.createElement("span");
     fixture.appendChild(el1);
     fixture.appendChild(el2);
 
-    const spanWrapper = dom("span");
+    const span_wrapper = dom("span");
     runner.assert(
-        spanWrapper.length() === 2,
+        span_wrapper.length() === 2,
         "length() returns exact count of matched elements"
     );
 
     runner.assert(
-        spanWrapper.get(0) === el1 && spanWrapper.get(1) === el2,
+        span_wrapper.get(0) === el1 && span_wrapper.get(1) === el2,
         "get(index) returns element at valid index"
     );
 
-    const allGet = spanWrapper.get();
+    const all_get = span_wrapper.get();
     runner.assert(
-        Array.isArray(allGet) === true && allGet.length === 2,
+        Array.isArray(all_get) === true && all_get.length === 2,
         "get() without arguments returns Array copy of all elements"
     );
 
-    allGet.push(document.createElement("p"));
+    all_get.push(document.createElement("p"));
     runner.assert(
-        spanWrapper.length() === 2,
-        "Mutating array returned by get() does not alter internal closure state"
+        span_wrapper.length() === 2,
+        "Mutating array returned by get() does not alter internal state"
     );
 
-    const outOfBoundsGet = spanWrapper.get(999);
+    const out_of_bounds = span_wrapper.get(999);
     runner.assert(
-        Array.isArray(outOfBoundsGet) === true && outOfBoundsGet.length === 2,
+        Array.isArray(out_of_bounds) === true && out_of_bounds.length === 2,
         "get() with out-of-bounds index returns array copy fallback"
     );
 
-    const negativeGet = spanWrapper.get(-1);
+    const negative_get = span_wrapper.get(-1);
     runner.assert(
-        Array.isArray(negativeGet) === true && negativeGet.length === 2,
+        Array.isArray(negative_get) === true && negative_get.length === 2,
         "get() with negative index returns array copy fallback"
     );
 
     let count = 0;
-    const chained = spanWrapper.each(function (el, index) {
+    const chained = span_wrapper.each(function (el, index) {
         count += 1;
         runner.assert(
-            typeof index === "number"
-            && el !== null
-            && typeof el.nodeType === "number",
+            typeof index === "number" &&
+            el !== null &&
+            typeof el.nodeType === "number",
             "each() callback receives element and numeric index"
         );
     });
@@ -305,12 +312,12 @@ function runAllTests() {
     );
 
     runner.assert(
-        chained === spanWrapper,
+        chained === span_wrapper,
         "each() returns api instance for method chaining"
     );
 
     runner.assert(
-        spanWrapper.each(null) === spanWrapper,
+        span_wrapper.each(null) === span_wrapper,
         "each() with non-function returns api instance gracefully"
     );
 
@@ -319,21 +326,21 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("4. Collection Management (addItem, removeItem)");
 
-    resetFixture();
-    const itemA = document.createElement("p");
-    const itemB = document.createElement("p");
-    const itemC = document.createElement("p");
+    reset_fixture();
+    const item_a = document.createElement("p");
+    const item_b = document.createElement("p");
+    const item_c = document.createElement("p");
 
-    const coll = dom(itemA);
+    const coll = dom(item_a);
     runner.assert(coll.length() === 1, "Initial collection length is 1");
 
-    coll.addItem(itemB);
+    coll.addItem(item_b);
     runner.assert(
         coll.length() === 2,
         "addItem() with Node increases length to 2"
     );
 
-    coll.addItem([itemC]);
+    coll.addItem([item_c]);
     runner.assert(
         coll.length() === 3,
         "addItem() with Array increases length to 3"
@@ -341,7 +348,7 @@ function runAllTests() {
 
     coll.removeItem(1);
     runner.assert(
-        coll.length() === 2 && coll.get(1) === itemC,
+        coll.length() === 2 && coll.get(1) === item_c,
         "removeItem(1) removes middle element and updates index mapping"
     );
 
@@ -362,53 +369,53 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("5. Attribute & Dataset Operations (attr, data)");
 
-    resetFixture();
-    const attrBox = dom.create("div");
-    fixture.appendChild(attrBox.get(0));
+    reset_fixture();
+    const attr_box = dom.create("div");
+    fixture.appendChild(attr_box.get(0));
 
-    attrBox.attr("id", "box-1");
+    attr_box.attr("id", "box-1");
     runner.assert(
-        attrBox.get(0).getAttribute("id") === "box-1",
+        attr_box.get(0).getAttribute("id") === "box-1",
         "attr(name, value) sets element attribute"
     );
 
-    const attrValues = attrBox.attr("id");
+    const attr_values = attr_box.attr("id");
     runner.assert(
-        attrValues[0] === "box-1",
+        attr_values[0] === "box-1",
         "attr(name) returns array of attribute values"
     );
 
-    attrBox.attr("id", null);
+    attr_box.attr("id", null);
     runner.assert(
-        attrBox.get(0).hasAttribute("id") === false,
+        attr_box.get(0).hasAttribute("id") === false,
         "attr(name, null) removes attribute from element"
     );
 
     runner.assert(
-        attrBox.attr(123) === attrBox,
+        attr_box.attr(123) === attr_box,
         "attr() with non-string attribute name returns api gracefully"
     );
 
-    attrBox.data("role", "admin");
+    attr_box.data("role", "admin");
     runner.assert(
-        attrBox.get(0).dataset.role === "admin",
+        attr_box.get(0).dataset.role === "admin",
         "data(name, value) sets dataset property"
     );
 
-    const dataValues = attrBox.data("role");
+    const data_values = attr_box.data("role");
     runner.assert(
-        dataValues[0] === "admin",
+        data_values[0] === "admin",
         "data(name) returns array of dataset values"
     );
 
-    attrBox.data("role", null);
+    attr_box.data("role", null);
     runner.assert(
-        attrBox.get(0).dataset.role === undefined,
+        attr_box.get(0).dataset.role === undefined,
         "data(name, null) deletes dataset property"
     );
 
     runner.assert(
-        attrBox.data(123) === attrBox,
+        attr_box.data(123) === attr_box,
         "data() with non-string dataset name returns api gracefully"
     );
 
@@ -417,62 +424,62 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("6. Class Name Manipulation & Predicates");
 
-    resetFixture();
-    const classBox1 = dom.create("div");
-    const classBox2 = dom.create("div");
-    const classMulti = classBox1.addItem(classBox2);
+    reset_fixture();
+    const class_box_1 = dom.create("div");
+    const class_box_2 = dom.create("div");
+    const class_multi = class_box_1.addItem(class_box_2);
 
-    classMulti.addClass("card active");
+    class_multi.addClass("card active");
     runner.assert(
-        classBox1.hasClass("card") === true
-        && classBox2.hasClass("card") === true,
+        class_box_1.hasClass("card") === true &&
+        class_box_2.hasClass("card") === true,
         "addClass() adds multiple space-separated classes to all elements"
     );
 
     runner.assert(
-        classMulti.hasClass("card") === true,
-        "hasClass() returns true when ALL elements in collection contain class"
+        class_multi.hasClass("card") === true,
+        "hasClass() returns true when ALL elements contain class"
     );
 
-    classBox2.removeClass("card");
+    class_box_2.removeClass("card");
     runner.assert(
-        classMulti.hasClass("card") === false,
-        "hasClass() returns false when ANY element in collection lacks class"
+        class_multi.hasClass("card") === false,
+        "hasClass() returns false when ANY element lacks class"
     );
 
     runner.assert(
-        classMulti.hasClass("") === false
-        && classMulti.hasClass(123) === false,
+        class_multi.hasClass("") === false &&
+        class_multi.hasClass(123) === false,
         "hasClass() with invalid tokens returns false"
     );
 
-    classBox1.toggleClass("highlight");
+    class_box_1.toggleClass("highlight");
     runner.assert(
-        classBox1.hasClass("highlight") === true,
+        class_box_1.hasClass("highlight") === true,
         "toggleClass() toggles class on"
     );
 
-    classBox1.toggleClass("highlight");
+    class_box_1.toggleClass("highlight");
     runner.assert(
-        classBox1.hasClass("highlight") === false,
+        class_box_1.hasClass("highlight") === false,
         "toggleClass() toggles class off"
     );
 
-    classBox1.toggleClass("forced", true);
+    class_box_1.toggleClass("forced", true);
     runner.assert(
-        classBox1.hasClass("forced") === true,
+        class_box_1.hasClass("forced") === true,
         "toggleClass(token, true) forces class presence"
     );
 
-    classBox1.toggleClass("forced", false);
+    class_box_1.toggleClass("forced", false);
     runner.assert(
-        classBox1.hasClass("forced") === false,
+        class_box_1.hasClass("forced") === false,
         "toggleClass(token, false) forces class removal"
     );
 
-    const classNames = classMulti.getClassName();
+    const class_names = class_multi.getClassName();
     runner.assert(
-        Array.isArray(classNames) === true && classNames.length === 2,
+        Array.isArray(class_names) === true && class_names.length === 2,
         "getClassName() returns array of class names matching elements count"
     );
 
@@ -481,54 +488,54 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("7. Content Getter & Setter Safety (text, html)");
 
-    resetFixture();
-    const contentBox = dom.create("div");
+    reset_fixture();
+    const content_box = dom.create("div");
 
-    contentBox.text("Safe Text Content");
+    content_box.text("Safe Text Content");
     runner.assert(
-        contentBox.get(0).textContent === "Safe Text Content",
+        content_box.get(0).textContent === "Safe Text Content",
         "text(value) sets element textContent"
     );
 
-    const texts = contentBox.text();
+    const texts = content_box.text();
     runner.assert(
         texts[0] === "Safe Text Content",
         "text() returns array of textContent strings"
     );
 
     runner.assert(
-        contentBox.text(12345) === contentBox
-        && contentBox.get(0).textContent === "Safe Text Content",
+        content_box.text(12345) === content_box &&
+        content_box.get(0).textContent === "Safe Text Content",
         "text(nonString) returns api without mutating content"
     );
 
-    contentBox.text("");
+    content_box.text("");
     runner.assert(
-        contentBox.get(0).textContent === "",
+        content_box.get(0).textContent === "",
         "text('') clears text content"
     );
 
-    contentBox.html("<span>Nested Span</span>");
+    content_box.html("<span>Nested Span</span>");
     runner.assert(
-        contentBox.get(0).children.length === 1,
+        content_box.get(0).children.length === 1,
         "html(value) sets element innerHTML"
     );
 
-    const htmls = contentBox.html();
+    const htmls = content_box.html();
     runner.assert(
         htmls[0] === "<span>Nested Span</span>",
         "html() returns array of innerHTML strings"
     );
 
     runner.assert(
-        contentBox.html(12345) === contentBox
-        && contentBox.get(0).children.length === 1,
+        content_box.html(12345) === content_box &&
+        content_box.get(0).children.length === 1,
         "html(nonString) returns api without mutating HTML"
     );
 
-    contentBox.html("");
+    content_box.html("");
     runner.assert(
-        contentBox.get(0).children.length === 0,
+        content_box.get(0).children.length === 0,
         "html('') clears inner HTML"
     );
 
@@ -537,94 +544,93 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("8. Scoped DOM Traversal & Deduplication");
 
-    resetFixture();
-    const parentDiv = document.createElement("div");
-    const child1 = document.createElement("span");
-    child1.className = "item";
-    const child2 = document.createElement("span");
-    child2.className = "item";
-    const child3 = document.createElement("span");
+    reset_fixture();
+    const parent_div = document.createElement("div");
+    const child_1 = document.createElement("span");
+    child_1.className = "item";
+    const child_2 = document.createElement("span");
+    child_2.className = "item";
+    const child_3 = document.createElement("span");
 
-    parentDiv.appendChild(child1);
-    parentDiv.appendChild(child2);
-    parentDiv.appendChild(child3);
-    fixture.appendChild(parentDiv);
+    parent_div.appendChild(child_1);
+    parent_div.appendChild(child_2);
+    parent_div.appendChild(child_3);
+    fixture.appendChild(parent_div);
 
-    const parentDom = dom(parentDiv);
-    const childrenDom = parentDom.children();
+    const parent_dom = dom(parent_div);
+    const children_dom = parent_dom.children();
     runner.assert(
-        childrenDom.length() === 3,
+        children_dom.length() === 3,
         "children() returns wrapper with all child elements"
     );
 
-    const child1Dom = dom(child1);
-    const nextDom = child1Dom.next();
+    const child_1_dom = dom(child_1);
+    const next_dom = child_1_dom.next();
     runner.assert(
-        nextDom.get(0) === child2,
+        next_dom.get(0) === child_2,
         "next() returns next sibling element"
     );
 
-    const child3Dom = dom(child3);
+    const child_3_dom = dom(child_3);
     runner.assert(
-        child3Dom.next().length() === 0,
+        child_3_dom.next().length() === 0,
         "next() when no next sibling exists returns empty wrapper"
     );
 
-    const child2Dom = dom(child2);
-    const prevDom = child2Dom.prev();
+    const child_2_dom = dom(child_2);
+    const prev_dom = child_2_dom.prev();
     runner.assert(
-        prevDom.get(0) === child1,
+        prev_dom.get(0) === child_1,
         "prev() returns previous sibling element"
     );
 
     runner.assert(
-        child1Dom.prev().length() === 0,
+        child_1_dom.prev().length() === 0,
         "prev() when no previous sibling exists returns empty wrapper"
     );
 
-    const parentResult = child1Dom.parents();
+    const parent_result = child_1_dom.parents();
     runner.assert(
-        parentResult.get(0) === parentDiv,
+        parent_result.get(0) === parent_div,
         "parents() returns parent element wrapper"
     );
 
-    const detachedNode = dom(document.createElement("div"));
+    const detached_node = dom(document.createElement("div"));
     runner.assert(
-        detachedNode.parents().length() === 0,
+        detached_node.parents().length() === 0,
         "parents() on detached node returns empty wrapper"
     );
 
-    const siblingsDom = child2Dom.siblings();
+    const siblings_dom = child_2_dom.siblings();
     runner.assert(
-        siblingsDom.length() === 2
-        && siblingsDom.get(0) === child1,
+        siblings_dom.length() === 2 && siblings_dom.get(0) === child_1,
         "siblings() returns all child siblings excluding target self"
     );
 
     runner.assert(
-        detachedNode.siblings().length() === 0,
+        detached_node.siblings().length() === 0,
         "siblings() on detached node returns empty wrapper"
     );
 
-    const selectedSub = parentDom.select(".item");
+    const selected_sub = parent_dom.select(".item");
     runner.assert(
-        selectedSub.length() === 1,
+        selected_sub.length() === 1,
         "select() returns first matching scoped descendant"
     );
 
     runner.assert(
-        parentDom.select(123) === parentDom,
+        parent_dom.select(123) === parent_dom,
         "select() with non-string token returns api"
     );
 
-    const selectedAllSub = parentDom.selectAll(".item");
+    const selected_all_sub = parent_dom.selectAll(".item");
     runner.assert(
-        selectedAllSub.length() === 2,
+        selected_all_sub.length() === 2,
         "selectAll() returns all matching scoped descendants"
     );
 
     runner.assert(
-        parentDom.selectAll(123) === parentDom,
+        parent_dom.selectAll(123) === parent_dom,
         "selectAll() with non-string token returns api"
     );
 
@@ -633,32 +639,32 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("9. DOM Manipulation & Clone Modes (clone, remove)");
 
-    resetFixture();
-    const styleBox = dom.create("div");
-    styleBox.get(0).appendChild(document.createElement("p"));
-    fixture.appendChild(styleBox.get(0));
+    reset_fixture();
+    const style_box = dom.create("div");
+    style_box.get(0).appendChild(document.createElement("p"));
+    fixture.appendChild(style_box.get(0));
 
-    const deepClone = styleBox.clone(true);
+    const deep_clone = style_box.clone(true);
     runner.assert(
-        deepClone.get(0).children.length === 1,
+        deep_clone.get(0).children.length === 1,
         "clone(true) performs deep clone including element children"
     );
 
-    const shallowClone = styleBox.clone(false);
+    const shallow_clone = style_box.clone(false);
     runner.assert(
-        shallowClone.get(0).children.length === 0,
+        shallow_clone.get(0).children.length === 0,
         "clone(false) performs shallow clone excluding element children"
     );
 
-    styleBox.remove();
+    style_box.remove();
     runner.assert(
         fixture.children.length === 0,
         "remove() detaches element from DOM parent"
     );
 
-    const detachedRemove = dom(document.createElement("div"));
+    const detached_remove = dom(document.createElement("div"));
     runner.assert(
-        detachedRemove.remove() === detachedRemove,
+        detached_remove.remove() === detached_remove,
         "remove() on detached node executes safely without throwing"
     );
 
@@ -667,36 +673,36 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("10. Style Computation & Conversion (css)");
 
-    resetFixture();
-    const cssBox = dom.create("div");
-    fixture.appendChild(cssBox.get(0));
+    reset_fixture();
+    const css_box = dom.create("div");
+    fixture.appendChild(css_box.get(0));
 
-    cssBox.css("color", "rgb(255, 0, 0)");
+    css_box.css("color", "rgb(255, 0, 0)");
     runner.assert(
-        cssBox.get(0).style.color === "rgb(255, 0, 0)",
+        css_box.get(0).style.color === "rgb(255, 0, 0)",
         "css(name, value) sets inline CSS property"
     );
 
-    cssBox.css("font-size", "16px");
+    css_box.css("font-size", "16px");
     runner.assert(
-        cssBox.get(0).style.fontSize === "16px",
+        css_box.get(0).style.fontSize === "16px",
         "css() converts kebab-case property name to camelCase style property"
     );
 
-    const computedStyles = cssBox.css("font-size");
+    const computed_styles = css_box.css("font-size");
     runner.assert(
-        computedStyles[0] === "16px",
+        computed_styles[0] === "16px",
         "css(name) reads computed style property value"
     );
 
-    cssBox.css("color", null);
+    css_box.css("color", null);
     runner.assert(
-        cssBox.get(0).style.color === "",
+        css_box.get(0).style.color === "",
         "css(name, null) removes inline CSS property"
     );
 
     runner.assert(
-        cssBox.css(123) === cssBox,
+        css_box.css(123) === css_box,
         "css() with non-string property name returns api gracefully"
     );
 
@@ -705,67 +711,67 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("11. Event Registration & Deregistration (on, off)");
 
-    resetFixture();
-    const btnDom = dom.create("button");
-    fixture.appendChild(btnDom.get(0));
+    reset_fixture();
+    const btn_dom = dom.create("button");
+    fixture.appendChild(btn_dom.get(0));
 
-    let clickCount = 0;
-    const clickHandler = function () {
-        clickCount += 1;
-    };
+    let click_count = 0;
+    function click_handler() {
+        click_count += 1;
+    }
 
     runner.assert(
-        btnDom.on(123, clickHandler) === btnDom,
+        btn_dom.on(123, click_handler) === btn_dom,
         "on() with invalid event type returns api gracefully"
     );
 
     runner.assert(
-        btnDom.on("click", "not-a-function") === btnDom,
+        btn_dom.on("click", "not-a-function") === btn_dom,
         "on() with non-function callback returns api gracefully"
     );
 
-    btnDom.on("click", clickHandler);
-    btnDom.get(0).dispatchEvent(new Event("click"));
+    btn_dom.on("click", click_handler);
+    btn_dom.get(0).dispatchEvent(new Event("click"));
     runner.assert(
-        clickCount === 1,
+        click_count === 1,
         "on() registers event handler that executes on dispatch"
     );
 
-    btnDom.off("click", clickHandler);
-    btnDom.get(0).dispatchEvent(new Event("click"));
+    btn_dom.off("click", click_handler);
+    btn_dom.get(0).dispatchEvent(new Event("click"));
     runner.assert(
-        clickCount === 1,
+        click_count === 1,
         "off(type, fn) deregisters specific event handler"
     );
 
-    let multiCount = 0;
-    const h1 = function () {
-        multiCount += 1;
-    };
-    const h2 = function () {
-        multiCount += 10;
-    };
+    let multi_count = 0;
+    function h1() {
+        multi_count += 1;
+    }
+    function h2() {
+        multi_count += 10;
+    }
 
-    btnDom.on("custom", h1);
-    btnDom.on("custom", h2);
-    btnDom.get(0).dispatchEvent(new Event("custom"));
+    btn_dom.on("custom", h1);
+    btn_dom.on("custom", h2);
+    btn_dom.get(0).dispatchEvent(new Event("custom"));
     runner.assert(
-        multiCount === 11,
+        multi_count === 11,
         "Multiple event handlers register and fire for same event type"
     );
 
-    btnDom.off("custom");
-    btnDom.get(0).dispatchEvent(new Event("custom"));
+    btn_dom.off("custom");
+    btn_dom.get(0).dispatchEvent(new Event("custom"));
     runner.assert(
-        multiCount === 11,
+        multi_count === 11,
         "off(type) removes all event handlers for specific event type"
     );
 
-    btnDom.on("custom", h1);
-    btnDom.off();
-    btnDom.get(0).dispatchEvent(new Event("custom"));
+    btn_dom.on("custom", h1);
+    btn_dom.off();
+    btn_dom.get(0).dispatchEvent(new Event("custom"));
     runner.assert(
-        multiCount === 11,
+        multi_count === 11,
         "off() with no arguments removes all event handlers across all types"
     );
 
@@ -774,38 +780,38 @@ function runAllTests() {
     // -------------------------------------------------------------------------
     runner.group("12. One-Time Events & Batch Processing (once)");
 
-    resetFixture();
+    reset_fixture();
     const b1 = dom.create("button");
     const b2 = dom.create("button");
-    const btnGroup = b1.addItem(b2);
+    const btn_group = b1.addItem(b2);
     fixture.appendChild(b1.get(0));
     fixture.appendChild(b2.get(0));
 
-    let batchCount = 0;
-    btnGroup.on("click", function () {
-        batchCount += 1;
+    let batch_count = 0;
+    btn_group.on("click", function () {
+        batch_count += 1;
     });
 
     b1.get(0).dispatchEvent(new Event("click"));
     b2.get(0).dispatchEvent(new Event("click"));
     runner.assert(
-        batchCount === 2,
+        batch_count === 2,
         "on() registers handlers across all elements in multi-element wrapper"
     );
 
-    let onceCount = 0;
+    let once_count = 0;
     b1.once("click", function () {
-        onceCount += 1;
+        once_count += 1;
     });
 
     b1.get(0).dispatchEvent(new Event("click"));
     b1.get(0).dispatchEvent(new Event("click"));
     runner.assert(
-        onceCount === 1,
+        once_count === 1,
         "once() executes handler exactly once and auto-deregisters"
     );
 
-    runner.renderSummary(startTime);
+    runner.render_summary(start_time);
 }
 
-runAllTests();
+run_all_tests();
