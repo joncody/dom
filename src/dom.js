@@ -198,12 +198,11 @@ function dom(selector) {
             return api;
         },
         get: function (index) {
-            if (
-                typeof index === "number"
-                && index >= 0
-                && index < elements.length
-            ) {
-                return elements[index];
+            if (typeof index === "number") {
+                if (index >= 0 && index < elements.length) {
+                    return elements[index];
+                }
+                return null;
             }
             return Array.from(elements);
         },

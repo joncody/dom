@@ -168,7 +168,7 @@ const allButtons = dom(".toolbar").selectAll("button");
 | `select(selector)` | Finds **first** matching descendant per element (`querySelector`). |
 | `selectAll(selector)` | Finds **all** matching descendants per element (`querySelectorAll`). |
 | `clone([deep])` | Clones all elements (`deep = true` by default); returns new `dom` object. |
-| `get([index])` | Returns element at index, or a **copy** of the full array if no index. |
+| `get([index])` | Returns element at index, `null` if index is out of bounds, or a **copy** of the full array if no index. |
 | `length()` | Returns number of selected elements. |
 
 ---
