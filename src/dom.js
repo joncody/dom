@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Lightweight, Crockfordian DOM manipulation library.
+ * Implements a chainable query selector wrapper adhering to strict functional conventions.
+ */
+
 const VALID_TAGS = new Set([
     "a", "abbr", "address", "area", "article", "aside", "audio", "b",
     "base", "bdo", "blockquote", "body", "br", "button", "canvas",
@@ -17,6 +22,11 @@ const VALID_TAGS = new Set([
 
 const eventRegistry = new WeakMap();
 
+/**
+ * Returns the lowercase object type string.
+ * @param {*} obj - Value to check.
+ * @returns {string}
+ */
 function objectType(obj) {
     if (obj === null) {
         return "null";
@@ -27,6 +37,11 @@ function objectType(obj) {
     return Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
 }
 
+/**
+ * Checks if a value is a DOM Node.
+ * @param {*} value - Value to check.
+ * @returns {boolean}
+ */
 function isNode(value) {
     return (
         value !== null
@@ -36,6 +51,11 @@ function isNode(value) {
     );
 }
 
+/**
+ * Converts a hyphen-separated string to camelCase.
+ * @param {string} value - Hyphenated string.
+ * @returns {string}
+ */
 function camelCase(value) {
     if (typeof value !== "string") {
         return value;
@@ -45,6 +65,11 @@ function camelCase(value) {
     });
 }
 
+/**
+ * Converts a camelCase string to kebab-case.
+ * @param {string} value - camelCase string.
+ * @returns {string}
+ */
 function kebabCase(value) {
     if (typeof value !== "string") {
         return value;
@@ -52,6 +77,11 @@ function kebabCase(value) {
     return value.replace(/([A-Z])/g, "-$1").toLowerCase();
 }
 
+/**
+ * Normalizes selectors, nodes, and arrays into an array of DOM Elements.
+ * @param {*} selector - Input selector or nodes.
+ * @returns {Element[]}
+ */
 function toElements(selector) {
     if (selector === null || selector === undefined) {
         return [];
@@ -84,6 +114,11 @@ function toElements(selector) {
     return [];
 }
 
+/**
+ * Wraps DOM elements in a chainable API interface.
+ * @param {*} selector - CSS selector, DOM node, or element collection.
+ * @returns {Object} Frozen DOM manipulation API.
+ */
 function dom(selector) {
     let api;
     let elements = toElements(selector);
@@ -499,6 +534,11 @@ function dom(selector) {
     return api;
 }
 
+/**
+ * Creates and wraps a newly constructed HTML element.
+ * @param {string} tag - Valid HTML element tag name.
+ * @returns {Object} Frozen DOM manipulation API.
+ */
 dom.create = Object.freeze(function (tag) {
     if (typeof tag !== "string") {
         return dom();
