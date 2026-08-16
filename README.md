@@ -1,5 +1,12 @@
 # `dom.js` – Minimal, Chainable DOM Utility
 
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Module: ESM](https://img.shields.io/badge/Module-ESM-blue.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
+[![Dependencies: Zero](https://img.shields.io/badge/Dependencies-0-brightgreen.svg)]()
+[![Code Style: Crockford Strict](https://img.shields.io/badge/Code%20Style-Crockford%20Strict-8A2BE2.svg)]()
+[![Tests: 70+ Passing](https://img.shields.io/badge/Tests-70%2B%20Passing-success.svg)](./tests/index.html)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 A **lightweight, modern alternative to jQuery** for selecting and manipulating DOM elements with a clean, chainable API.
 
 `dom` prioritizes **clarity, safety, zero dependencies, and Crockfordian standards** — delivering powerful DOM control without bloat.
