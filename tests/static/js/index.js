@@ -285,14 +285,14 @@ function run_all_tests() {
 
     const out_of_bounds = span_wrapper.get(999);
     runner.assert(
-        Array.isArray(out_of_bounds) === true && out_of_bounds.length === 2,
-        "get() with out-of-bounds index returns array copy fallback"
+        out_of_bounds === null,
+        "get() with out-of-bounds index returns null"
     );
 
     const negative_get = span_wrapper.get(-1);
     runner.assert(
-        Array.isArray(negative_get) === true && negative_get.length === 2,
-        "get() with negative index returns array copy fallback"
+        negative_get === null,
+        "get() with negative index returns null"
     );
 
     let count = 0;
