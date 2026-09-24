@@ -521,7 +521,7 @@ function dom(selector) {
             elements.forEach(function (el) {
                 let register = eventRegistry.get(el);
                 if (!register) {
-                    register = Object.create(null);
+                    register = {};
                     eventRegistry.set(el, register);
                 }
                 if (!register[type]) {
@@ -569,7 +569,7 @@ function dom(selector) {
                 };
                 let register = eventRegistry.get(el);
                 if (!register) {
-                    register = Object.create(null);
+                    register = {};
                     eventRegistry.set(el, register);
                 }
                 if (!register[type]) {
